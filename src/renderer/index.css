@@ -1,0 +1,641 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-discord-bg: #313338;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: transparent !important;
+  color: #dbdee1;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  background-color: transparent !important;
+}
+
+.main-app-bg {
+  background-color: #0b0c15;
+}
+
+/* Space Background Animation */
+@keyframes move-twinkle {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -10000px 5000px;
+  }
+}
+
+.space-bg {
+  background: #0f0c29;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  position: relative;
+  overflow: hidden;
+}
+
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/stars.png') repeat top center;
+  z-index: 0;
+}
+
+.twinkling {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/twinkling.png') repeat top center;
+  z-index: 1;
+  animation: move-twinkle 200s linear infinite;
+  opacity: 0.5;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.input-glass {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.input-glass:focus {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: #8b5cf6;
+  /* Violet-500 */
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+.btn-space {
+  background: linear-gradient(90deg, #6d28d9 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
+  transition: all 0.3s ease;
+}
+
+.btn-space:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.6);
+  filter: brightness(1.1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: #1a1b1e;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #4c1d95;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #0b0c15;
+}
+
+/* --- Animated Name Frames --- */
+
+/* Gold Luxury Frame */
+/* Gold Luxury Frame */
+.name-frame-gold,
+.name-gold {
+  position: relative;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.9), rgba(0, 0, 0, 0.9));
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 10px rgba(184, 134, 11, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #FDB931;
+  /* Metallic Gold Text */
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.8), 0 0 5px rgba(255, 215, 0, 0.4);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* Pseudo-element for metallic sheen border */
+.name-frame-gold::before,
+.name-gold::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #B8860B, #FFD700, #FDB931, #FFFFE0, #FDB931, #FFD700, #B8860B);
+  background-size: 400% 400%;
+  animation: shine-gold-border 4s linear infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  opacity: 0.8;
+}
+
+@keyframes shine-gold-border {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Neon Cyberpunk Frame */
+.name-frame-neon,
+.name-neon {
+  position: relative;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #0ff;
+  box-shadow: 0 0 5px #0ff, inset 0 0 5px #0ff;
+  color: #fff;
+  text-shadow: 0 0 5px #0ff;
+  animation: neon-pulse 1.5s infinite alternate;
+}
+
+@keyframes neon-pulse {
+  0% {
+    border-color: #0ff;
+    box-shadow: 0 0 5px #0ff, inset 0 0 5px #0ff;
+    text-shadow: 0 0 5px #0ff;
+  }
+
+  100% {
+    border-color: #f0f;
+    box-shadow: 0 0 15px #f0f, inset 0 0 10px #f0f;
+    text-shadow: 0 0 10px #f0f;
+  }
+}
+
+/* Magma/Fire Frame */
+.name-frame-magma,
+.name-magma {
+  position: relative;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: linear-gradient(to bottom, #1a0b00, #3a0000);
+  border: 2px solid #ff4500;
+  box-shadow: 0 0 10px #ff4500;
+  overflow: hidden;
+  color: #ffecd2;
+  text-shadow: 0 0 4px #ff4500;
+}
+
+.name-frame-magma::after,
+.name-magma::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+  animation: magma-pulse 2s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes magma-pulse {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+/* ─── Tempestade Relâmpago (Lightning Storm) ────────────────────────────── */
+
+/* Name Frame */
+.name-frame-lightning,
+.name-lightning {
+  position: relative;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #facc15;
+  box-shadow: 0 0 6px #facc15, 0 0 12px #3b82f6, inset 0 0 6px rgba(250, 204, 21, 0.15);
+  color: #fff;
+  text-shadow: 0 0 4px #facc15, 0 0 10px #3b82f6;
+  animation: lightning-pulse 1.2s infinite alternate;
+}
+
+@keyframes lightning-pulse {
+  0% {
+    border-color: #facc15;
+    box-shadow: 0 0 6px #facc15, 0 0 16px #3b82f6, inset 0 0 6px rgba(250, 204, 21, 0.15);
+    text-shadow: 0 0 4px #facc15;
+  }
+
+  50% {
+    border-color: #fff;
+    box-shadow: 0 0 20px #facc15, 0 0 40px #3b82f6, inset 0 0 12px rgba(250, 204, 21, 0.4);
+    text-shadow: 0 0 8px #fff, 0 0 16px #facc15;
+  }
+
+  100% {
+    border-color: #3b82f6;
+    box-shadow: 0 0 6px #3b82f6, 0 0 16px #facc15, inset 0 0 6px rgba(59, 130, 246, 0.15);
+    text-shadow: 0 0 4px #3b82f6;
+  }
+}
+
+/* Avatar Frame */
+.avatar-frame-lightning,
+.avatar-lightning {
+  position: relative;
+  border: 3px solid #facc15 !important;
+  border-radius: 50% !important;
+  animation: lightning-avatar-pulse 1.2s infinite alternate;
+}
+
+@keyframes lightning-avatar-pulse {
+  0% {
+    border-color: #facc15;
+    box-shadow: 0 0 8px #facc15, 0 0 20px #3b82f6;
+  }
+
+  50% {
+    border-color: #fff;
+    box-shadow: 0 0 24px #facc15, 0 0 48px #3b82f6;
+  }
+
+  100% {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px #3b82f6, 0 0 20px #facc15;
+  }
+}
+
+/* Chat Panel Effect */
+.effect-lightning_storm::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(250, 204, 21, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
+  animation: lightning-bg 2s infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes lightning-bg {
+  0% {
+    opacity: 0.5;
+    background:
+      radial-gradient(ellipse at top left, rgba(250, 204, 21, 0.2) 0%, transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.1) 0%, transparent 60%);
+  }
+
+  50% {
+    opacity: 1;
+    background:
+      radial-gradient(ellipse at center, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at top right, rgba(250, 204, 21, 0.2) 0%, transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(59, 130, 246, 0.2) 0%, transparent 60%);
+  }
+
+  100% {
+    opacity: 0.5;
+    background:
+      radial-gradient(ellipse at bottom left, rgba(250, 204, 21, 0.1) 0%, transparent 60%),
+      radial-gradient(ellipse at top right, rgba(59, 130, 246, 0.2) 0%, transparent 60%);
+  }
+}
+
+/* ─── Galáxia Sombria (Dark Galaxy) ─────────────────────────────────────── */
+
+/* Name Frame */
+.name-frame-galaxy,
+.name-galaxy {
+  position: relative;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0d0d1a 0%, #1a0d2e 50%, #0d0d1a 100%);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  color: #e0aaff;
+  text-shadow: 0 0 6px #c77dff, 0 0 12px #9d4edd;
+  animation: galaxy-text 4s linear infinite;
+  overflow: visible;
+}
+
+.name-frame-galaxy::before,
+.name-galaxy::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: 10px;
+  background: linear-gradient(270deg, #9d4edd, #c77dff, #48cae4, #023e8a, #9d4edd);
+  background-size: 400% 400%;
+  animation: galaxy-border 5s linear infinite;
+}
+
+@keyframes galaxy-border {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes galaxy-text {
+
+  0%,
+  100% {
+    text-shadow: 0 0 6px #c77dff, 0 0 12px #9d4edd;
+    color: #e0aaff;
+  }
+
+  25% {
+    text-shadow: 0 0 6px #48cae4, 0 0 14px #023e8a;
+    color: #90e0ef;
+  }
+
+  50% {
+    text-shadow: 0 0 10px #e0aaff, 0 0 20px #c77dff;
+    color: #fff;
+  }
+
+  75% {
+    text-shadow: 0 0 6px #9d4edd, 0 0 14px #48cae4;
+    color: #c77dff;
+  }
+}
+
+/* Avatar Frame */
+.avatar-frame-galaxy,
+.avatar-galaxy {
+  position: relative;
+  border: 3px solid #9d4edd !important;
+  border-radius: 50% !important;
+  animation: galaxy-avatar 4s linear infinite;
+}
+
+@keyframes galaxy-avatar {
+  0% {
+    border-color: #9d4edd;
+    box-shadow: 0 0 10px #9d4edd, 0 0 20px #023e8a;
+  }
+
+  25% {
+    border-color: #48cae4;
+    box-shadow: 0 0 14px #48cae4, 0 0 28px #9d4edd;
+  }
+
+  50% {
+    border-color: #c77dff;
+    box-shadow: 0 0 18px #c77dff, 0 0 36px #48cae4;
+  }
+
+  75% {
+    border-color: #48cae4;
+    box-shadow: 0 0 14px #023e8a, 0 0 28px #c77dff;
+  }
+
+  100% {
+    border-color: #9d4edd;
+    box-shadow: 0 0 10px #9d4edd, 0 0 20px #023e8a;
+  }
+}
+
+/* Chat Panel Effect */
+.effect-dark_galaxy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(157, 78, 221, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(72, 202, 228, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 80%, rgba(2, 62, 138, 0.2) 0%, transparent 55%);
+  animation: galaxy-bg 8s linear infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes galaxy-bg {
+  0% {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(157, 78, 221, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 20%, rgba(72, 202, 228, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(2, 62, 138, 0.2) 0%, transparent 55%);
+  }
+
+  50% {
+    background:
+      radial-gradient(ellipse at 70% 30%, rgba(199, 125, 255, 0.2) 0%, transparent 55%),
+      radial-gradient(ellipse at 30% 70%, rgba(72, 202, 228, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(157, 78, 221, 0.1) 0%, transparent 60%);
+  }
+
+  100% {
+    background:
+      radial-gradient(ellipse at 80% 80%, rgba(2, 62, 138, 0.25) 0%, transparent 55%),
+      radial-gradient(ellipse at 20% 20%, rgba(157, 78, 221, 0.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 40%, rgba(72, 202, 228, 0.12) 0%, transparent 55%);
+  }
+}
+
+/* --- Avatar Frames --- */
+
+.avatar-frame-gold,
+.avatar-gold {
+  position: relative;
+  /* Layered shadows for glow/depth */
+  box-shadow:
+    0 0 0 2px #000,
+    /* Separation ring */
+    0 0 10px rgba(253, 185, 49, 0.6),
+    /* Inner Glow */
+    0 0 20px rgba(184, 134, 11, 0.4);
+  /* Outer Atmosphere */
+  border: 3px solid #FDB931 !important;
+  /* Premium Gold Hex */
+  border-radius: 50% !important;
+  background-clip: padding-box;
+  animation: gold-pulse 3s infinite alternate;
+}
+
+@keyframes gold-pulse {
+  from {
+    border-color: #FDB931;
+    box-shadow: 0 0 0 2px #000, 0 0 10px rgba(253, 185, 49, 0.6);
+  }
+
+  to {
+    border-color: #FFED4B;
+    box-shadow: 0 0 0 2px #000, 0 0 20px rgba(255, 237, 75, 0.8), 0 0 30px rgba(184, 134, 11, 0.5);
+  }
+}
+
+.avatar-frame-neon,
+.avatar-neon {
+  position: relative;
+  box-shadow: 0 0 10px #0ff, inset 0 0 5px #0ff;
+  border: 3px solid #0ff !important;
+  border-radius: 50% !important;
+  animation: neon-avatar-pulse 1.5s infinite alternate;
+}
+
+@keyframes neon-avatar-pulse {
+  from {
+    box-shadow: 0 0 5px #0ff;
+    border-color: #0ff;
+  }
+
+  to {
+    box-shadow: 0 0 15px #f0f;
+    border-color: #f0f;
+  }
+}
+
+.avatar-frame-magma,
+.avatar-magma {
+  position: relative;
+  box-shadow: 0 0 10px #ff4500;
+  border: 3px solid #ff4500 !important;
+  border-radius: 50% !important;
+  animation: magma-avatar-pulse 2s infinite ease-in-out;
+}
+
+@keyframes magma-avatar-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px #ff4500;
+    border-color: #ff4500;
+  }
+
+  50% {
+    box-shadow: 0 0 20px #ff4500;
+    border-color: #ff8c00;
+  }
+}
+
+/* --- Utilities --- */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* --- Effect Classes (Universal) --- */
+
+.effect-yuji_black_flash::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(circle at center, rgba(127, 29, 29, 0.4) 0%, transparent 70%);
+  animation: pulse 2s infinite;
+  pointer-events: none;
+}
+
+.effect-domain_expansion::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(circle at center, rgba(147, 51, 234, 0.3) 0%, rgba(26, 11, 46, 0.4) 50%, transparent 100%);
+  animation: spin-slow 15s linear infinite;
+  pointer-events: none;
+}
+
+.effect-king_of_curses::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(circle at bottom, rgba(234, 88, 12, 0.3) 0%, rgba(127, 29, 29, 0.3) 50%, transparent 100%);
+  animation: pulse 3s infinite;
+  pointer-events: none;
+}
+
+
+/* Existing Animations Fix/Additions */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 10s linear infinite;
+}
