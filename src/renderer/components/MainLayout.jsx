@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FaHome, FaStore, FaBook, FaCompass, FaSignOutAlt, FaCog, FaComments, FaGamepad, FaUserShield, FaShoppingBag, FaBoxOpen, FaBell, FaGift } from 'react-icons/fa';
+import { FaHome, FaStore, FaBook, FaCompass, FaSignOutAlt, FaCog, FaComments, FaGamepad, FaUserShield, FaShoppingBag, FaBoxOpen, FaBell, FaGift, FaCheck } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useAdmin } from '../hooks/useAdmin';
 import { supabase } from '../supabaseClient';
@@ -23,6 +23,17 @@ const MainLayout = () => {
 
     // Warning system
     const [unacknowledgedWarning, setUnacknowledgedWarning] = React.useState(null);
+
+    // Updater state for global banner
+    const [updaterState, setUpdaterState] = React.useState('idle');
+
+    React.useEffect(() => {
+        if (window.electron?.onUpdaterStateChange) {
+            return window.electron.onUpdaterStateChange((state) => {
+                setUpdaterState(state);
+            });
+        }
+    }, []);
 
     // Removed local userProfile state and fetch logic, using context
     const isElectron = !!window.electron?.isElectron;
@@ -176,82 +187,92 @@ const MainLayout = () => {
     React.useEffect(() => {
         if (!user) return;
 
-        let lastKnownUnread = -1; // -1 means first fetch (don't notify on initial load)
+        let lastKnownUnread = -1;
 
         const fetchUnread = async () => {
-            // Count unread messages
-            const { count: msgCount } = await supabase
-                .from('messages')
-                .select('*', { count: 'exact', head: true })
-                .eq('receiver_id', user.id)
-                .eq('is_read', false);
-
-            // Count unread warnings
-            const { count: warnCount } = await supabase
-                .from('user_warnings')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', user.id)
-                .eq('acknowledged', false);
-
-            const newCount = (msgCount || 0) + (warnCount || 0);
-
-            // If unread count increased → new message arrived → send notification
-            if (lastKnownUnread >= 0 && newCount > lastKnownUnread) {
-                console.log('[MainLayout] Unread count increased:', lastKnownUnread, '→', newCount);
-                try {
-                    // Fetch the latest unread message to show in notification
-                    const { data: latestMsg } = await supabase
+            try {
+                // Run all counts in parallel for speed
+                const [msgRes, warnRes] = await Promise.all([
+                    supabase
                         .from('messages')
-                        .select('sender_id, content')
+                        .select('*', { count: 'exact', head: true })
                         .eq('receiver_id', user.id)
-                        .eq('is_read', false)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .single();
+                        .eq('is_read', false),
+                    supabase
+                        .from('user_warnings')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', user.id)
+                        .eq('acknowledged', false)
+                ]);
 
-                    if (latestMsg) {
-                        const { data: senderProfile } = await supabase
-                            .from('profiles')
-                            .select('username, avatar_url')
-                            .eq('id', latestMsg.sender_id)
+                const newCount = (msgRes.count || 0) + (warnRes.count || 0);
+
+                // If unread count increased → new message arrived → send overlay notification
+                if (lastKnownUnread >= 0 && newCount > lastKnownUnread) {
+                    try {
+                        const { data: latestMsg } = await supabase
+                            .from('messages')
+                            .select('sender_id, content')
+                            .eq('receiver_id', user.id)
+                            .eq('is_read', false)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
                             .single();
-                        const senderName = senderProfile?.username || 'Alguém';
-                        const messagePreview = (latestMsg.content || '').slice(0, 80);
 
-                        if (window.electron?.sendNotification) {
-                            console.log('[MainLayout] Sending notification:', senderName, messagePreview);
-                            window.electron.sendNotification({
-                                type: 'message',
-                                title: senderName,
-                                body: messagePreview || 'Nova mensagem',
-                                avatar: senderProfile?.avatar_url || null
-                            });
+                        if (latestMsg) {
+                            const { data: senderProfile } = await supabase
+                                .from('profiles')
+                                .select('username, avatar_url')
+                                .eq('id', latestMsg.sender_id)
+                                .single();
+                            const senderName = senderProfile?.username || 'Alguém';
+                            const messagePreview = (latestMsg.content || '').slice(0, 80);
+
+                            if (window.electron?.sendNotification) {
+                                window.electron.sendNotification({
+                                    type: 'message',
+                                    title: senderName,
+                                    body: messagePreview || 'Nova mensagem',
+                                    avatar: senderProfile?.avatar_url || null
+                                });
+                            }
                         }
+                    } catch (e) {
+                        console.error('[MainLayout] Notification detail error:', e);
                     }
-                } catch (e) {
-                    console.error('[MainLayout] Error fetching latest message for notification:', e);
                 }
-            }
 
-            lastKnownUnread = newCount;
-            setUnreadCount(newCount);
+                lastKnownUnread = newCount;
+                setUnreadCount(newCount);
+            } catch (err) {
+                console.error('[MainLayout] fetchUnread error:', err);
+            }
         };
 
         fetchUnread();
-        const interval = setInterval(fetchUnread, 3000);
+        // Reduced interval — real-time channels handle most updates instantly
+        const interval = setInterval(fetchUnread, 10000);
 
-        // Keep the real-time channel for instant badge updates (best effort)
+        // Real-time channels for instant badge updates
         const channel = supabase
-            .channel(`layout_notifications_${user.id}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
-                if (payload.new?.receiver_id === user.id || payload.old?.receiver_id === user.id) {
-                    fetchUnread();
-                }
+            .channel(`layout_badge_${user.id}`)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, () => {
+                fetchUnread();
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'user_warnings' }, (payload) => {
-                if (payload.new?.user_id === user.id || payload.old?.user_id === user.id) {
-                    fetchUnread();
-                }
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, () => {
+                fetchUnread();
+            })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_warnings', filter: `user_id=eq.${user.id}` }, () => {
+                fetchUnread();
+            })
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_warnings', filter: `user_id=eq.${user.id}` }, () => {
+                fetchUnread();
+            })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_comments' }, () => {
+                fetchUnread();
+            })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_likes' }, () => {
+                fetchUnread();
             })
             .subscribe();
 
@@ -394,9 +415,30 @@ const MainLayout = () => {
                 </div>
 
                 {/* Scrollable Page Content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    <div className="max-w-[1200px] mx-auto w-full h-full">
-                        <Outlet />
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {updaterState === 'downloaded' && (
+                        <div className="bg-gradient-to-r from-green-900/40 to-green-600/20 border-b border-green-500/30 px-6 py-3 flex items-center justify-between shadow-inner backdrop-blur-md z-40 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-green-500/20 rounded-full">
+                                    <FaBoxOpen className="text-green-400 text-lg animate-bounce" />
+                                </div>
+                                <div>
+                                    <h4 className="text-green-300 font-bold text-sm">Atualização Pronta!</h4>
+                                    <p className="text-green-400/80 text-xs">O download terminou. Instale agora para receber as novidades.</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => window.electron?.installUpdate()}
+                                className="px-5 py-2 bg-green-500 hover:bg-green-400 text-white text-xs font-bold rounded-xl transition-all shadow-lg hover:shadow-green-500/50 flex items-center gap-2"
+                            >
+                                <FaCheck /> Instalar e Reiniciar
+                            </button>
+                        </div>
+                    )}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                        <div className="max-w-[1200px] mx-auto w-full h-full">
+                            <Outlet />
+                        </div>
                     </div>
                 </div>
 

@@ -34,7 +34,14 @@ contextBridge.exposeInMainWorld('electron', {
         return () => ipcRenderer.removeListener('shortcuts-update', listener);
     },
     sendNotification: (data) => ipcRenderer.send('send-notification-to-overlay', data),
-    onOverlayNotification: (callback) => ipcRenderer.on('overlay-notification', (_event, data) => callback(data))
+    onOverlayNotification: (callback) => ipcRenderer.on('overlay-notification', (_event, data) => callback(data)),
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    installUpdate: () => ipcRenderer.send('install-update'),
+    onUpdaterStateChange: (callback) => {
+        const listener = (_event, state) => callback(state);
+        ipcRenderer.on('updater-state-change', listener);
+        return () => ipcRenderer.removeListener('updater-state-change', listener);
+    }
 });
 
 // ── Persistent notification queue for overlay ──

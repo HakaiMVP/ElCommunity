@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { FaTimes, FaComment, FaEnvelope, FaReply, FaExclamationTriangle } from 'react-icons/fa';
+import { FaTimes, FaComment, FaEnvelope, FaReply, FaExclamationTriangle, FaHeart } from 'react-icons/fa';
 import { getCosmeticsForUser } from '../utils/cosmetics';
 
 const NotificationPanel = ({ isOpen, onClose }) => {
@@ -10,8 +10,10 @@ const NotificationPanel = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const panelRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('all'); // 'all', 'messages', 'comments'
+    const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('all');
+    const hasFetchedRef = useRef(false);
+    const channelRef = useRef(null);
 
     // Close when clicking outside
     useEffect(() => {
@@ -25,147 +27,150 @@ const NotificationPanel = ({ isOpen, onClose }) => {
         return () => document.removeEventListener('mousedown', handleClick);
     }, [isOpen, onClose]);
 
-    // Fetch all notifications when opened
-    useEffect(() => {
-        if (!isOpen || !user) return;
-        fetchNotifications();
-    }, [isOpen, user]);
+    // Main unified fetch function — fast, single-pass
+    const fetchNotifications = useCallback(async (showLoader = false) => {
+        if (!user) return;
+        if (showLoader) setLoading(true);
 
-    const fetchNotifications = async () => {
-        setLoading(true);
         try {
             const results = [];
 
-            // 1. Unread messages
-            const { data: messages } = await supabase
-                .from('messages')
-                .select('id, content, created_at, sender_id, is_read')
-                .eq('receiver_id', user.id)
-                .eq('is_read', false)
-                .order('created_at', { ascending: false })
-                .limit(20);
+            // Run all 4 queries in PARALLEL for speed
+            const [messagesRes, commentsRes, repliesRes, warningsRes, likesRes] = await Promise.all([
+                // 1. Unread Messages
+                supabase
+                    .from('messages')
+                    .select('id, content, created_at, sender_id, is_read, sender:sender_id(id, username, avatar_url, equipped_frame, equipped_effect, equipped_avatar_decoration, equipped_profile_effect, equipped_name_color, equipped_card_background)')
+                    .eq('receiver_id', user.id)
+                    .eq('is_read', false)
+                    .order('created_at', { ascending: false })
+                    .limit(20),
 
-            if (messages && messages.length > 0) {
-                // Fetch sender profiles in batch
-                const senderIds = [...new Set(messages.map(m => m.sender_id))];
-                const { data: senderProfiles } = await supabase
-                    .from('profiles')
-                    .select('id, username, avatar_url, equipped_frame, equipped_effect, equipped_avatar_decoration, equipped_profile_effect, equipped_name_color, equipped_card_background')
-                    .in('id', senderIds);
-                const profileMap = {};
-                (senderProfiles || []).forEach(p => { profileMap[p.id] = p; });
-
-                messages.forEach(m => {
-                    const sender = profileMap[m.sender_id];
-                    results.push({
-                        id: `msg-${m.id}`,
-                        type: 'message',
-                        title: sender?.username || 'Alguém',
-                        body: (m.content || '').slice(0, 100),
-                        avatar: sender?.avatar_url,
-                        profiles: sender || {},
-                        time: m.created_at,
-                        senderId: m.sender_id,
-                        read: m.is_read
-                    });
-                });
-            }
-
-            // 2. Comments on user's posts
-            const { data: userPosts } = await supabase
-                .from('community_posts')
-                .select('id')
-                .eq('user_id', user.id);
-
-            if (userPosts && userPosts.length > 0) {
-                const postIds = userPosts.map(p => p.id);
-                const { data: comments } = await supabase
+                // 2. Comments on user's posts (single query with join)
+                supabase
                     .from('community_comments')
-                    .select('id, content, created_at, user_id, post_id, parent_id, profiles:community_comments_author_fkey(username, avatar_url, equipped_frame, equipped_effect, equipped_avatar_decoration, equipped_profile_effect, equipped_name_color, equipped_card_background), posts:post_id(community_id)')
-                    .in('post_id', postIds)
+                    .select('id, content, created_at, user_id, post_id, parent_id, profiles:community_comments_author_fkey(id, username, avatar_url, equipped_frame, equipped_effect, equipped_avatar_decoration, equipped_profile_effect, equipped_name_color, equipped_card_background), posts:post_id(user_id, community_id)')
                     .neq('user_id', user.id)
                     .order('created_at', { ascending: false })
-                    .limit(20);
+                    .limit(30),
 
-                if (comments) {
-                    comments.forEach(c => {
-                        results.push({
-                            id: `cmt-${c.id}`,
-                            type: c.parent_id ? 'reply' : 'comment',
-                            title: c.profiles?.username || 'Alguém',
-                            body: c.parent_id
-                                ? `respondeu um comentário: ${(c.content || '').slice(0, 80)}`
-                                : `comentou no seu post: ${(c.content || '').slice(0, 80)}`,
-                            avatar: c.profiles?.avatar_url,
-                            profiles: c.profiles || {},
-                            time: c.created_at,
-                            postId: c.post_id,
-                            communityId: c.posts?.community_id
-                        });
-                    });
-                }
-            }
-
-            // 3. Replies to user's comments
-            const { data: userComments } = await supabase
-                .from('community_comments')
-                .select('id')
-                .eq('user_id', user.id);
-
-            if (userComments && userComments.length > 0) {
-                const commentIds = userComments.map(c => c.id);
-                const { data: replies } = await supabase
+                // 3. Replies to user's comments
+                supabase
                     .from('community_comments')
-                    .select('id, content, created_at, user_id, post_id, parent_id, profiles:community_comments_author_fkey(username, avatar_url, equipped_frame, equipped_effect, equipped_avatar_decoration, equipped_profile_effect, equipped_name_color, equipped_card_background), posts:post_id(community_id)')
-                    .in('parent_id', commentIds)
+                    .select('id, content, created_at, user_id, post_id, parent_id, parent:parent_id(user_id), profiles:community_comments_author_fkey(id, username, avatar_url, equipped_frame, equipped_effect, equipped_avatar_decoration, equipped_profile_effect, equipped_name_color, equipped_card_background), posts:post_id(community_id)')
+                    .neq('user_id', user.id)
+                    .not('parent_id', 'is', null)
+                    .order('created_at', { ascending: false })
+                    .limit(20),
+
+                // 4. Admin Warnings
+                supabase
+                    .from('user_warnings')
+                    .select('id, reason, created_at, acknowledged, admin:admin_id(username, avatar_url)')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(10),
+
+                // 5. Likes on user's posts
+                supabase
+                    .from('community_likes')
+                    .select('id, created_at, user_id, post_id, profiles:user_id(id, username, avatar_url, equipped_frame, equipped_effect, equipped_avatar_decoration, equipped_profile_effect, equipped_name_color, equipped_card_background), posts:post_id(user_id, community_id)')
                     .neq('user_id', user.id)
                     .order('created_at', { ascending: false })
-                    .limit(20);
+                    .limit(20)
+            ]);
 
-                if (replies) {
-                    replies.forEach(r => {
-                        // Avoid duplicates (already captured in section 2)
-                        if (!results.some(n => n.id === `cmt-${r.id}`)) {
-                            results.push({
-                                id: `reply-${r.id}`,
-                                type: 'reply',
-                                title: r.profiles?.username || 'Alguém',
-                                body: `respondeu você: ${(r.content || '').slice(0, 80)}`,
-                                avatar: r.profiles?.avatar_url,
-                                profiles: r.profiles || {},
-                                time: r.created_at,
-                                postId: r.post_id,
-                                communityId: r.posts?.community_id
-                            });
-                        }
+            // Process Messages
+            const messages = messagesRes.data || [];
+            messages.forEach(m => {
+                const sender = m.sender || {};
+                results.push({
+                    id: `msg-${m.id}`,
+                    type: 'message',
+                    title: sender.username || 'Alguém',
+                    body: (m.content || '').slice(0, 100),
+                    avatar: sender.avatar_url,
+                    profiles: sender,
+                    time: m.created_at,
+                    senderId: m.sender_id,
+                    read: m.is_read
+                });
+            });
+
+            // Process Comments (only on user's posts)
+            const allComments = commentsRes.data || [];
+            const commentIdsAdded = new Set();
+            allComments.forEach(c => {
+                if (c.posts?.user_id === user.id) {
+                    commentIdsAdded.add(c.id);
+                    results.push({
+                        id: `cmt-${c.id}`,
+                        type: c.parent_id ? 'reply' : 'comment',
+                        title: c.profiles?.username || 'Alguém',
+                        body: c.parent_id
+                            ? `respondeu um comentário: ${(c.content || '').slice(0, 80)}`
+                            : `comentou no seu post: ${(c.content || '').slice(0, 80)}`,
+                        avatar: c.profiles?.avatar_url,
+                        profiles: c.profiles || {},
+                        time: c.created_at,
+                        postId: c.post_id,
+                        communityId: c.posts?.community_id
                     });
                 }
-            }
+            });
 
-            // 4. Admin Warnings
-            const { data: warnings } = await supabase
-                .from('user_warnings')
-                .select('id, reason, created_at, acknowledged, admin:admin_id(username, avatar_url)')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(10);
-
-            if (warnings) {
-                warnings.forEach(w => {
+            // Process Replies to user's comments
+            const replies = repliesRes.data || [];
+            replies.forEach(r => {
+                if (r.parent?.user_id === user.id && !commentIdsAdded.has(r.id)) {
                     results.push({
-                        id: `warn-${w.id}`,
-                        type: 'warning',
-                        title: '⚠️ Aviso da Administração',
-                        body: w.reason,
-                        avatar: w.admin?.avatar_url,
-                        time: w.created_at,
-                        warningId: w.id,
-                        read: w.acknowledged
+                        id: `reply-${r.id}`,
+                        type: 'reply',
+                        title: r.profiles?.username || 'Alguém',
+                        body: `respondeu você: ${(r.content || '').slice(0, 80)}`,
+                        avatar: r.profiles?.avatar_url,
+                        profiles: r.profiles || {},
+                        time: r.created_at,
+                        postId: r.post_id,
+                        communityId: r.posts?.community_id
                     });
-                });
-            }
+                }
+            });
 
-            // Sort by time (newest first)
+            // Process Warnings
+            const warnings = warningsRes.data || [];
+            warnings.forEach(w => {
+                results.push({
+                    id: `warn-${w.id}`,
+                    type: 'warning',
+                    title: '⚠️ Aviso da Administração',
+                    body: w.reason,
+                    avatar: w.admin?.avatar_url,
+                    time: w.created_at,
+                    warningId: w.id,
+                    read: w.acknowledged
+                });
+            });
+
+            // Process Likes on user's posts
+            const likes = likesRes.data || [];
+            likes.forEach(l => {
+                if (l.posts?.user_id === user.id) {
+                    results.push({
+                        id: `like-${l.id}`,
+                        type: 'like',
+                        title: l.profiles?.username || 'Alguém',
+                        body: 'curtiu seu post',
+                        avatar: l.profiles?.avatar_url,
+                        profiles: l.profiles || {},
+                        time: l.created_at,
+                        postId: l.post_id,
+                        communityId: l.posts?.community_id
+                    });
+                }
+            });
+
+            // Sort newest first
             results.sort((a, b) => new Date(b.time) - new Date(a.time));
             setNotifications(results);
         } catch (err) {
@@ -173,22 +178,70 @@ const NotificationPanel = ({ isOpen, onClose }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
+
+    // Pre-fetch on mount (background, no loading spinner)
+    useEffect(() => {
+        if (!user) return;
+        if (!hasFetchedRef.current) {
+            hasFetchedRef.current = true;
+            fetchNotifications(false);
+        }
+    }, [user, fetchNotifications]);
+
+    // Setup real-time subscription — always active, not only when panel is open
+    useEffect(() => {
+        if (!user) return;
+
+        // Clean up previous channel
+        if (channelRef.current) {
+            supabase.removeChannel(channelRef.current);
+        }
+
+        const channel = supabase
+            .channel(`notif_panel_${user.id}`)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, () => {
+                fetchNotifications(false);
+            })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_comments' }, () => {
+                fetchNotifications(false);
+            })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_warnings', filter: `user_id=eq.${user.id}` }, () => {
+                fetchNotifications(false);
+            })
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_likes' }, () => {
+                fetchNotifications(false);
+            })
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, () => {
+                fetchNotifications(false);
+            })
+            .subscribe();
+
+        channelRef.current = channel;
+
+        return () => {
+            supabase.removeChannel(channel);
+            channelRef.current = null;
+        };
+    }, [user, fetchNotifications]);
+
+    // Refresh when panel opens (fast, no loading spinner since data is already cached)
+    useEffect(() => {
+        if (isOpen && user) {
+            fetchNotifications(false);
+        }
+    }, [isOpen, user, fetchNotifications]);
 
     const handleNotifClick = (notif) => {
         if (notif.type === 'message') {
-            // Check if it's a market chat or friend chat
-            // For simplicity, we just navigate. Chat.jsx will try to find it in either list.
             navigate(`/chat?chatUserId=${notif.senderId}`);
         } else if (notif.type === 'warning') {
-            // Just mark as read if not read yet
             if (!notif.read && notif.warningId) {
                 supabase.from('user_warnings').update({ acknowledged: true }).eq('id', notif.warningId).then(() => {
-                    fetchNotifications();
+                    fetchNotifications(false);
                 });
             }
         } else {
-            // Navigate directly to the post if we have its ID
             if (notif.postId) {
                 navigate(`/post/${notif.postId}`);
             } else if (notif.communityId) {
@@ -217,6 +270,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
             case 'comment': return <FaComment className="text-amber-400" />;
             case 'reply': return <FaReply className="text-purple-400" />;
             case 'warning': return <FaExclamationTriangle className="text-red-500" />;
+            case 'like': return <FaHeart className="text-pink-500" />;
             default: return <FaComment className="text-gray-400" />;
         }
     };
@@ -225,7 +279,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
         ? notifications
         : activeTab === 'messages'
             ? notifications.filter(n => n.type === 'message')
-            : notifications.filter(n => n.type === 'comment' || n.type === 'reply');
+            : notifications.filter(n => n.type === 'comment' || n.type === 'reply' || n.type === 'like');
 
     if (!isOpen) return null;
 
@@ -247,7 +301,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                 {[
                     { key: 'all', label: 'Todas' },
                     { key: 'messages', label: 'Mensagens' },
-                    { key: 'comments', label: 'Comentários' }
+                    { key: 'comments', label: 'Atividade' }
                 ].map(tab => (
                     <button
                         key={tab.key}

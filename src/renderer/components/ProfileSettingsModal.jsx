@@ -53,6 +53,20 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [registrationResults, setRegistrationResults] = useState({});
     const [closeToTray, setCloseToTray] = useState(true);
+    const [updaterState, setUpdaterState] = useState('idle'); // idle, checking, available, not-available, downloading, downloaded, error
+
+    useEffect(() => {
+        if (window.electron?.onUpdaterStateChange) {
+            return window.electron.onUpdaterStateChange((state) => {
+                console.log('[Updater UI] State changed:', state);
+                setUpdaterState(state);
+                if (state === 'not-available' || state === 'error') {
+                    // Reset to idle after a few seconds so user can try again later
+                    setTimeout(() => setUpdaterState('idle'), 5000);
+                }
+            });
+        }
+    }, []);
 
     useEffect(() => {
         if (isOpen && window.electron?.storage) {
@@ -770,6 +784,42 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                                                 >
                                                     <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 ${closeToTray ? 'left-[26px]' : 'left-1'}`} />
                                                 </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* System Updates */}
+                                    <div className="bg-[#1e1f2b] rounded-3xl p-8 border border-white/5 shadow-xl transition-all duration-500 hover:border-purple-500/30">
+                                        <div className="flex items-start justify-between gap-6">
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
+                                                    <FaSync className={`text-purple-500 ${updaterState === 'checking' || updaterState === 'downloading' ? 'animate-spin' : ''}`} /> Atualizações do Sistema
+                                                </h3>
+                                                <p className="text-gray-400 text-sm">Busque as versões mais recentes do ElCommunity e escolha quando reiniciar para instalar.</p>
+                                            </div>
+
+                                            <div className="flex flex-col items-end gap-3 mt-2">
+                                                {updaterState === 'downloaded' ? (
+                                                    <button
+                                                        onClick={() => window.electron.installUpdate()}
+                                                        className="px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-green-900/40 flex items-center gap-2 animate-bounce"
+                                                    >
+                                                        <FaCheck /> Instalar e Reiniciar
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (updaterState === 'idle' || updaterState === 'not-available' || updaterState === 'error') {
+                                                                setUpdaterState('checking');
+                                                                window.electron.checkForUpdates();
+                                                            }
+                                                        }}
+                                                        disabled={updaterState === 'checking' || updaterState === 'available' || updaterState === 'downloading'}
+                                                        className={`px-6 py-2.5 font-bold rounded-xl transition-all shadow-lg flex items-center gap-2 ${updaterState === 'checking' || updaterState === 'available' || updaterState === 'downloading' ? 'bg-purple-600/50 text-white/50 cursor-not-allowed' : updaterState === 'not-available' ? 'bg-[#2d2f3b] text-white hover:bg-[#383a47]' : updaterState === 'error' ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-900/40'}`}
+                                                    >
+                                                        {updaterState === 'checking' ? 'Procurando...' : updaterState === 'available' ? 'Baixando Atualização...' : updaterState === 'downloading' ? 'Baixando Atualização...' : updaterState === 'error' ? 'Erro na Busca' : updaterState === 'not-available' ? 'Você está atualizado' : 'Procurar Atualizações'}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

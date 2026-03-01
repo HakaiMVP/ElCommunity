@@ -281,11 +281,19 @@ if (app) {
         // Start the low-level keyboard hook (works in fullscreen games)
         keyboardHook.start();
 
-        // Check for updates
+        // Check for updates (will auto download by default, but we control the install)
         autoUpdater.checkForUpdatesAndNotify();
     });
 
     // --- Auto Updater Events ---
+    autoUpdater.on('checking-for-update', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater-state-change', 'checking');
+    });
+
+    autoUpdater.on('update-not-available', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater-state-change', 'not-available');
+    });
+
     autoUpdater.on('update-available', (info) => {
         console.log('[Updater] Update available:', info.version);
         // We use the existing notification channel so it shows up natively + in the overlay!
@@ -307,6 +315,7 @@ if (app) {
                 avatar: null
             });
         }
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater-state-change', 'available');
     });
 
     autoUpdater.on('update-downloaded', (info) => {
@@ -329,15 +338,28 @@ if (app) {
             });
         }
 
-        // Wait a few seconds to let user read the notification before restarting
-        setTimeout(() => {
-            isQuitting = true;
-            autoUpdater.quitAndInstall();
-        }, 5000);
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater-state-change', 'downloaded');
+
+        // Removed the forced quitAndInstall so the user can trigger it manually via the UI.
     });
 
     autoUpdater.on('error', (err) => {
         console.error('[Updater] Error in auto-updater:', err);
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater-state-change', 'error');
+    });
+
+    // IPC to trigger manual checks
+    ipcMain.handle('check-for-updates', async () => {
+        try {
+            return await autoUpdater.checkForUpdates();
+        } catch (e) {
+            console.error('[Updater] Manual check error:', e);
+        }
+    });
+
+    ipcMain.on('install-update', () => {
+        isQuitting = true;
+        autoUpdater.quitAndInstall();
     });
 
     app.on('will-quit', () => {
