@@ -1,7 +1,7 @@
 {
   "name": "elcommunity",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "src/main/main.js",
   "scripts": {
     "dev": "vite",
@@ -39,7 +39,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "deleteAppDataOnUninstall": true
+      "deleteAppDataOnUninstall": true,
+      "include": "build/installer.nsh"
     },
     "asarUnpack": [
       "**/src/main/tools/**"
