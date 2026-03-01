@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, screen, globalShortcut, Notification, Tray, Menu } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const { getGameStats, getRunningWindows, getSystemStats, getGpuUsage, getDiskUsage, getAllSystemStats, startFpsMonitor, stopFpsMonitor, getCurrentFps } = require('./monitor');
 const keyboardHook = require('./keyboardHook');
@@ -279,6 +280,64 @@ if (app) {
 
         // Start the low-level keyboard hook (works in fullscreen games)
         keyboardHook.start();
+
+        // Check for updates
+        autoUpdater.checkForUpdatesAndNotify();
+    });
+
+    // --- Auto Updater Events ---
+    autoUpdater.on('update-available', (info) => {
+        console.log('[Updater] Update available:', info.version);
+        // We use the existing notification channel so it shows up natively + in the overlay!
+        if (Notification.isSupported()) {
+            const nativeNotif = new Notification({
+                title: 'ElCommunity Update',
+                body: `Versão ${info.version} disponível. Baixando em segundo plano...`,
+                icon: path.join(__dirname, 'assets', 'icon.png')
+            });
+            nativeNotif.show();
+        }
+
+        // Try to send to overlay if it exists
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send('overlay-notification', {
+                type: 'system',
+                title: 'Atualização Encontrada',
+                body: `Versão ${info.version} está sendo baixada.`,
+                avatar: null
+            });
+        }
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+        console.log('[Updater] Update downloaded:', info.version);
+        if (Notification.isSupported()) {
+            const nativeNotif = new Notification({
+                title: 'Atualização Pronta!',
+                body: `Versão ${info.version} baixada. O ElCommunity será reiniciado para instalar.`,
+                icon: path.join(__dirname, 'assets', 'icon.png')
+            });
+            nativeNotif.show();
+        }
+
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send('overlay-notification', {
+                type: 'system',
+                title: 'Atualização Pronta!',
+                body: `O ElCommunity será reiniciado.`,
+                avatar: null
+            });
+        }
+
+        // Wait a few seconds to let user read the notification before restarting
+        setTimeout(() => {
+            isQuitting = true;
+            autoUpdater.quitAndInstall();
+        }, 5000);
+    });
+
+    autoUpdater.on('error', (err) => {
+        console.error('[Updater] Error in auto-updater:', err);
     });
 
     app.on('will-quit', () => {

@@ -16,6 +16,13 @@
   "build": {
     "appId": "com.elcommunity.app",
     "productName": "ElCommunity",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "HakaiMVP",
+        "repo": "ElCommunity"
+      }
+    ],
     "directories": {
       "output": "release"
     },
@@ -42,6 +49,7 @@
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.95.3",
     "@tailwindcss/postcss": "^4.1.18",
+    "electron-updater": "^6.8.3",
     "koffi": "^2.15.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
