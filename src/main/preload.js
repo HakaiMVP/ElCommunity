@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electron', {
     isElectron: true,
+    getVersion: () => ipcRenderer.invoke('get-version'),
     ping: () => ipcRenderer.invoke('ping'),
     getMemoryInfo: () => ipcRenderer.invoke('get-memory-info'),
     getRunningWindows: () => ipcRenderer.invoke('get-running-windows'),

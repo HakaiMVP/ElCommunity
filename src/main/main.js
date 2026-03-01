@@ -351,9 +351,17 @@ if (app) {
     // IPC to trigger manual checks
     ipcMain.handle('check-for-updates', async () => {
         try {
-            return await autoUpdater.checkForUpdates();
+            const result = await autoUpdater.checkForUpdates();
+            if (!result) {
+                console.warn('[Updater] checkForUpdates returned null. (Probably running in dev mode or not packed)');
+                // Manually trigger not-available in dev mode to release the UI
+                if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater-state-change', 'not-available');
+            }
+            return result;
         } catch (e) {
             console.error('[Updater] Manual check error:', e);
+            if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater-state-change', 'error');
+            return null;
         }
     });
 
@@ -407,6 +415,10 @@ ipcMain.handle('get-memory-info', async () => {
         private: Math.round(memory.private / 1024),
         shared: Math.round(memory.shared / 1024)
     };
+});
+
+ipcMain.handle('get-version', () => {
+    return app.getVersion();
 });
 
 function tryRegisterOverlayShortcut() {

@@ -54,8 +54,20 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
     const [registrationResults, setRegistrationResults] = useState({});
     const [closeToTray, setCloseToTray] = useState(true);
     const [updaterState, setUpdaterState] = useState('idle'); // idle, checking, available, not-available, downloading, downloaded, error
+    const [appVersion, setAppVersion] = useState(null);
 
     useEffect(() => {
+        if (window.electron?.getVersion) {
+            console.log("Calling getVersion...");
+            window.electron.getVersion()
+                .then(version => {
+                    console.log("Version received:", version);
+                    setAppVersion(version);
+                })
+                .catch(err => console.error("Error getting version:", err));
+        } else {
+            console.log("window.electron.getVersion is not defined");
+        }
         if (window.electron?.onUpdaterStateChange) {
             return window.electron.onUpdaterStateChange((state) => {
                 console.log('[Updater UI] State changed:', state);
@@ -792,9 +804,16 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                                     <div className="bg-[#1e1f2b] rounded-3xl p-8 border border-white/5 shadow-xl transition-all duration-500 hover:border-purple-500/30">
                                         <div className="flex items-start justify-between gap-6">
                                             <div className="flex-1">
-                                                <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
-                                                    <FaSync className={`text-purple-500 ${updaterState === 'checking' || updaterState === 'downloading' ? 'animate-spin' : ''}`} /> Atualizações do Sistema
-                                                </h3>
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                                                        <FaSync className={`text-purple-500 ${updaterState === 'checking' || updaterState === 'downloading' ? 'animate-spin' : ''}`} /> Atualizações do Sistema
+                                                    </h3>
+                                                    {appVersion && (
+                                                        <span className="bg-purple-500/20 text-purple-400 text-xs font-bold px-2 py-0.5 rounded-md border border-purple-500/30">
+                                                            v{appVersion}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-gray-400 text-sm">Busque as versões mais recentes do ElCommunity e escolha quando reiniciar para instalar.</p>
                                             </div>
 
