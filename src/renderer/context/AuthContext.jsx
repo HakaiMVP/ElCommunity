@@ -36,7 +36,8 @@ export const AuthProvider = ({ children }) => {
                 setUserProfile(profileData);
             }
         } catch (error) {
-            console.error('Error fetching profile in context:', error);
+            console.error('[AuthContext] Error fetching profile:', error);
+            console.error('[AuthContext] TIP: Se for um erro 406 ou RLS (Row Level Security), verifique as regras no Supabase para a tabela de profiles.');
         }
     };
 

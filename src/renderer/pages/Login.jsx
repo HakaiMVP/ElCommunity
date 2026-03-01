@@ -27,7 +27,7 @@ const Login = () => {
         setLoading(true);
         try {
             await signIn(email, password, rememberMe);
-            navigate('/dashboard'); // Redirect after login
+            // The useEffect observing `user` will handle the redirection automatically
         } catch (err) {
             setError('Falha ao entrar: ' + (err.message || 'Verifique suas credenciais'));
         } finally {

@@ -35,11 +35,14 @@ const customStorageAdapter = {
     }
 };
 
+const isOverlay = window.location.hash.includes('overlay');
+
 export const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
-        persistSession: true,
+        storageKey: 'elcommunity-auth-token', // Explicit key
+        persistSession: !isOverlay, // Do not persist or read in overlay
         storage: customStorageAdapter, // Use custom adapter
-        autoRefreshToken: true,
-        detectSessionInUrl: true
+        autoRefreshToken: !isOverlay, // Overlay MUST NOT refresh tokens
+        detectSessionInUrl: !isOverlay
     }
 });
