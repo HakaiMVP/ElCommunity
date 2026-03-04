@@ -1,0 +1,619 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-discord-bg: #313338;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: transparent !important;
+  color: #dbdee1;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  background-color: transparent !important;
+}
+
+.main-app-bg {
+  background-color: #0b0c15;
+}
+
+/* Space Background Animation */
+@keyframes move-twinkle {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -10000px 5000px;
+  }
+}
+
+.space-bg {
+  background: #0f0c29;
+  background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);
+  background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+  position: relative;
+  overflow: hidden;
+}
+
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/stars.png') repeat top center;
+  z-index: 0;
+}
+
+.twinkling {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/twinkling.png') repeat top center;
+  z-index: 1;
+  animation: move-twinkle 200s linear infinite;
+  opacity: 0.5;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.input-glass {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.input-glass:focus {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+.btn-space {
+  background: linear-gradient(90deg, #6d28d9 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
+  transition: all 0.3s ease;
+}
+
+.btn-space:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.6);
+  filter: brightness(1.1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: #1a1b1e;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #4c1d95;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #0b0c15;
+}
+
+/* --- Utilities --- */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 10s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PREMIUM COSMETICS — Animated Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Infernal Flame — Pulsing Red Fire Border ───────────────────────────── */
+.avatar-frame-infernal {
+  position: relative;
+  border: 3px solid #dc2626 !important;
+  border-radius: 50% !important;
+  animation: infernal-rotate 3s linear infinite;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.6), 0 0 30px rgba(220, 38, 38, 0.3), inset 0 0 8px rgba(220, 38, 38, 0.2);
+}
+
+@keyframes infernal-rotate {
+  0% {
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.6), 0 0 30px rgba(220, 38, 38, 0.3);
+    filter: hue-rotate(0deg);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.8), 0 0 45px rgba(0, 0, 0, 0.8);
+    filter: hue-rotate(10deg);
+  }
+
+  100% {
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.6), 0 0 30px rgba(220, 38, 38, 0.3);
+    filter: hue-rotate(0deg);
+  }
+}
+
+.name-frame-infernal {
+  position: relative;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1a0000 0%, #300000 100%);
+  border: 2px solid #dc2626;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.5), inset 0 0 6px rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+  text-shadow: 0 0 6px #dc2626, 0 0 12px rgba(220, 38, 38, 0.4);
+  animation: infernal-name-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes infernal-name-pulse {
+  0% {
+    text-shadow: 0 0 6px #dc2626;
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.5);
+  }
+
+  100% {
+    text-shadow: 0 0 12px #ef4444, 0 0 20px rgba(220, 38, 38, 0.6);
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.8), 0 0 30px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ─── Arcane Energy — Purple/Blue Mystical Aura ──────────────────────────── */
+.avatar-frame-arcana {
+  position: relative;
+  border: 3px solid #7c3aed !important;
+  border-radius: 50% !important;
+  animation: arcana-energy-pulse 2.5s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
+}
+
+@keyframes arcana-energy-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
+    border-color: #7c3aed;
+  }
+
+  33% {
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.8), 0 0 50px rgba(124, 58, 237, 0.4);
+    border-color: #3b82f6;
+  }
+
+  66% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.7), 0 0 45px rgba(124, 58, 237, 0.5);
+    border-color: #a855f7;
+  }
+}
+
+.name-frame-arcana {
+  position: relative;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #0c0020 0%, #1a0040 50%, #0c0020 100%);
+  border: 2px solid #7c3aed;
+  color: #c4b5fd;
+  text-shadow: 0 0 8px #7c3aed, 0 0 16px rgba(59, 130, 246, 0.5);
+  animation: arcana-name-flicker 3s ease-in-out infinite;
+}
+
+@keyframes arcana-name-flicker {
+
+  0%,
+  100% {
+    text-shadow: 0 0 8px #7c3aed;
+    opacity: 1;
+  }
+
+  30% {
+    text-shadow: 0 0 4px #7c3aed;
+    opacity: 0.85;
+  }
+
+  35% {
+    text-shadow: 0 0 16px #3b82f6, 0 0 30px #7c3aed;
+    opacity: 1;
+  }
+
+  70% {
+    text-shadow: 0 0 10px #a855f7;
+    opacity: 0.9;
+  }
+}
+
+/* ─── Celestial Radiance — Golden Divine Aura ────────────────────────────── */
+.avatar-frame-celestial {
+  position: relative;
+  border: 3px solid #facc15 !important;
+  border-radius: 50% !important;
+  animation: celestial-aura 1.8s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.7), 0 0 50px rgba(250, 204, 21, 0.3), 0 0 80px rgba(234, 179, 8, 0.15);
+}
+
+@keyframes celestial-aura {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.7), 0 0 50px rgba(250, 204, 21, 0.3);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 35px rgba(250, 204, 21, 0.9), 0 0 70px rgba(234, 179, 8, 0.5), 0 0 100px rgba(250, 204, 21, 0.2);
+    transform: scale(1.03);
+  }
+}
+
+.name-frame-celestial {
+  position: relative;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1a1500 0%, #2a2000 100%);
+  border: 2px solid #facc15;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+  color: #fef08a;
+  text-shadow: 0 0 8px #facc15, 0 0 16px rgba(234, 179, 8, 0.6);
+  font-weight: 900;
+  animation: celestial-name-glow 2s ease-in-out infinite alternate;
+}
+
+.name-frame-celestial::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #facc15, #fef08a, #eab308, #fde047, #facc15);
+  background-size: 300% 300%;
+  animation: celestial-border-flow 3s linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes celestial-name-glow {
+  0% {
+    text-shadow: 0 0 8px #facc15;
+  }
+
+  100% {
+    text-shadow: 0 0 16px #fef08a, 0 0 30px #facc15, 0 0 50px rgba(250, 204, 21, 0.3);
+  }
+}
+
+@keyframes celestial-border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ─── Deep Tide — Ocean Wave Blue Glow ───────────────────────────────────── */
+.avatar-frame-tide {
+  position: relative;
+  border: 3px solid #06b6d4 !important;
+  border-radius: 50% !important;
+  animation: tide-water 3s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.5), 0 0 30px rgba(14, 116, 144, 0.3);
+}
+
+@keyframes tide-water {
+
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.5), 0 0 30px rgba(14, 116, 144, 0.3);
+    border-color: #06b6d4;
+  }
+
+  25% {
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.6), 0 0 40px rgba(6, 182, 212, 0.4);
+    border-color: #22d3ee;
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.8), 0 0 50px rgba(14, 116, 144, 0.4);
+    border-color: #67e8f9;
+  }
+
+  75% {
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.6), 0 0 40px rgba(6, 182, 212, 0.4);
+    border-color: #22d3ee;
+  }
+}
+
+.name-frame-tide {
+  position: relative;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #001a1a 0%, #002030 100%);
+  border: 2px solid #06b6d4;
+  color: #a5f3fc;
+  text-shadow: 0 0 6px #06b6d4, 0 0 12px rgba(34, 211, 238, 0.4);
+  animation: tide-name-wave 3s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.name-frame-tide::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.15), transparent);
+  animation: tide-wave-sweep 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tide-name-wave {
+
+  0%,
+  100% {
+    text-shadow: 0 0 6px #06b6d4;
+  }
+
+  50% {
+    text-shadow: 0 0 12px #22d3ee, 0 0 24px rgba(6, 182, 212, 0.5);
+  }
+}
+
+@keyframes tide-wave-sweep {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(50%);
+  }
+}
+
+/* ─── Floating Particles & Shared Effects ────────────────────────────────── */
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-120px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes float-up-slow {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translateY(-60px) translateX(10px) scale(0.7);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-130px) translateX(-5px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes energy-ripple {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0.4;
+  }
+}
+
+@keyframes aura-flicker {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  20% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+
+  40% {
+    opacity: 0.2;
+    transform: scale(0.98);
+  }
+
+  60% {
+    opacity: 0.7;
+    transform: scale(1.03);
+  }
+
+  80% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+}
+
+@keyframes water-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes sakura-drift {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translateY(-50px) translateX(30px) rotate(180deg);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(-110px) translateX(-10px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ─── Card Backgrounds ───────────────────────────────────────────────────── */
+
+/* Shared base: ensure text is always readable on Card Backgrounds */
+.card-bg-mystic,
+.card-bg-crimson,
+.card-bg-ocean,
+.card-bg-golden {
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.4);
+}
+
+.card-bg-mystic *,
+.card-bg-crimson *,
+.card-bg-ocean *,
+.card-bg-golden * {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.card-bg-mystic input,
+.card-bg-mystic textarea,
+.card-bg-mystic select,
+.card-bg-crimson input,
+.card-bg-crimson textarea,
+.card-bg-crimson select,
+.card-bg-ocean input,
+.card-bg-ocean textarea,
+.card-bg-ocean select,
+.card-bg-golden input,
+.card-bg-golden textarea,
+.card-bg-golden select {
+  text-shadow: none;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.card-bg-mystic {
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 30%, #0a0a1a 60%, #0d0020 100%) !important;
+  border: 1px solid rgba(124, 58, 237, 0.4) !important;
+  position: relative;
+}
+
+.card-bg-crimson {
+  background: linear-gradient(135deg, #1a0505 0%, #2a0a0a 30%, #1a0505 60%, #0f0000 100%) !important;
+  border: 1px solid rgba(220, 38, 38, 0.4) !important;
+  position: relative;
+}
+
+.card-bg-ocean {
+  background: linear-gradient(135deg, #001020 0%, #001530 30%, #000a1a 60%, #001525 100%) !important;
+  border: 1px solid rgba(6, 182, 212, 0.4) !important;
+  position: relative;
+}
+
+.card-bg-golden {
+  background: linear-gradient(135deg, #0f0d00 0%, #1a1400 30%, #0f0d00 60%, #1a1500 100%) !important;
+  border: 1px solid rgba(250, 204, 21, 0.3) !important;
+  position: relative;
+}

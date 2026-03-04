@@ -1,0 +1,3 @@
+# No external dependencies required
+# FPS monitoring is handled directly in Node.js (monitor.js)
+# Only PresentMon.exe is needed in this directory
